@@ -166,6 +166,7 @@ public final class Conversation: @unchecked Sendable {
 private extension Conversation {
 	func handleEvent(_ event: ServerEvent) throws {
 		if debug { print(event) }
+		print("🔄 [Conversation] Handling event: \(type(of: event))")
 
 		switch event {
 			case let .error(_, error):
@@ -177,6 +178,7 @@ private extension Conversation {
 			case let .sessionUpdated(_, session):
 				self.session = session
 			case let .conversationItemCreated(_, item, _):
+				print("🎉 [Conversation] Conversation item created: \(item.id)")
 				entries.append(item)
 			case let .conversationItemDeleted(_, itemId):
 				entries.removeAll { $0.id == itemId }
@@ -237,8 +239,10 @@ private extension Conversation {
 					functionCall.arguments = arguments
 				}
 			case .inputAudioBufferSpeechStarted:
+				print("🎤 [Conversation] Speech started")
 				isUserSpeaking = true
 			case .inputAudioBufferSpeechStopped:
+				print("🎤 [Conversation] Speech stopped")
 				isUserSpeaking = false
 			case .outputAudioBufferStarted:
 				isModelSpeaking = true
@@ -250,6 +254,10 @@ private extension Conversation {
 
 					message = newMessage
 				}
+			case let .inputAudioBufferCommitted(_, itemId, _):
+				print("🎤 [Conversation] Input audio buffer committed - itemId: \(itemId)")
+			case let .inputAudioBufferCleared(_):
+				print("🎤 [Conversation] Input audio buffer cleared")
 			default: break
 		}
 	}

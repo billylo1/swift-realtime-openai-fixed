@@ -48,7 +48,10 @@ public final class WebSocketConnector: NSObject, Connector, Sendable {
 						continue
 					}
 
-					try stream.yield(decoder.decode(ServerEvent.self, from: data))
+					print("🔍 [WebSocket] Received raw data: \(text)")
+					let serverEvent = try decoder.decode(ServerEvent.self, from: data)
+					print("📡 [WebSocket] Decoded server event: \(type(of: serverEvent))")
+					try stream.yield(serverEvent)
 				} catch {
 					stream.finish(throwing: error)
 					isActive = false

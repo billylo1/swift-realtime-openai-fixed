@@ -193,9 +193,16 @@ extension WebRTCConnector: LKRTCPeerConnectionDelegate {
 
 extension WebRTCConnector: LKRTCDataChannelDelegate {
 	public func dataChannel(_: LKRTCDataChannel, didReceiveMessageWith buffer: LKRTCDataBuffer) {
-		do { try stream.yield(decoder.decode(ServerEvent.self, from: buffer.data)) }
+		let rawData = String(data: buffer.data, encoding: .utf8) ?? "<invalid utf8>"
+		print("🔍 [WebRTC] Received raw data: \(rawData)")
+		
+		do { 
+			let serverEvent = try decoder.decode(ServerEvent.self, from: buffer.data)
+			print("📡 [WebRTC] Decoded server event: \(type(of: serverEvent))")
+			try stream.yield(serverEvent)
+		}
 		catch {
-			print("Failed to decode server event: \(String(data: buffer.data, encoding: .utf8) ?? "<invalid utf8>")")
+			print("Failed to decode server event: \(rawData)")
 			stream.finish(throwing: error)
 		}
 	}
