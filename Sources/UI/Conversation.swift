@@ -180,6 +180,9 @@ private extension Conversation {
 			case let .conversationItemCreated(_, item, _):
 				print("🎉 [Conversation] Conversation item created: \(item.id)")
 				entries.append(item)
+			case let .conversationItemAdded(_, item, _):
+				print("🎉 [Conversation] Conversation item added: \(item.id)")
+				entries.append(item)
 			case let .conversationItemDeleted(_, itemId):
 				entries.removeAll { $0.id == itemId }
 			case let .conversationItemInputAudioTranscriptionCompleted(_, itemId, contentIndex, transcript, _, _):
