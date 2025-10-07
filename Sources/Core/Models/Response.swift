@@ -64,11 +64,15 @@ public struct Response: Identifiable, Equatable, Hashable, Codable, Sendable {
 	}
 
 	public struct Usage: Equatable, Hashable, Codable, Sendable {
-		public let totalTokens: Int
-		public let inputTokens: Int
-		public let outputTokens: Int
-		public let inputTokenDetails: InputTokenDetails
-		public let outputTokenDetails: OutputTokenDetails
+		public let totalTokens: Int?
+		public let inputTokens: Int?
+		public let outputTokens: Int?
+		public let inputTokenDetails: InputTokenDetails?
+		public let outputTokenDetails: OutputTokenDetails?
+		
+		// For transcription events that use duration-based usage
+		public let type: String?
+		public let seconds: Double?
 
 		public struct InputTokenDetails: Equatable, Hashable, Codable, Sendable {
 			public let textTokens: Int
@@ -85,6 +89,51 @@ public struct Response: Identifiable, Equatable, Hashable, Codable, Sendable {
 		public struct OutputTokenDetails: Equatable, Hashable, Codable, Sendable {
 			public let textTokens: Int
 			public let audioTokens: Int
+		}
+		
+		// Custom initializer to handle both token-based and duration-based usage
+		public init(from decoder: Decoder) throws {
+			let container = try decoder.container(keyedBy: CodingKeys.self)
+			
+			// Try to decode as token-based usage first
+			if let totalTokens = try container.decodeIfPresent(Int.self, forKey: .totalTokens) {
+				self.totalTokens = totalTokens
+				self.inputTokens = try container.decodeIfPresent(Int.self, forKey: .inputTokens)
+				self.outputTokens = try container.decodeIfPresent(Int.self, forKey: .outputTokens)
+				self.inputTokenDetails = try container.decodeIfPresent(InputTokenDetails.self, forKey: .inputTokenDetails)
+				self.outputTokenDetails = try container.decodeIfPresent(OutputTokenDetails.self, forKey: .outputTokenDetails)
+				self.type = nil
+				self.seconds = nil
+			} else {
+				// Handle duration-based usage for transcription events
+				self.totalTokens = nil
+				self.inputTokens = nil
+				self.outputTokens = nil
+				self.inputTokenDetails = nil
+				self.outputTokenDetails = nil
+				self.type = try container.decodeIfPresent(String.self, forKey: .type)
+				self.seconds = try container.decodeIfPresent(Double.self, forKey: .seconds)
+			}
+		}
+		
+		public func encode(to encoder: Encoder) throws {
+			var container = encoder.container(keyedBy: CodingKeys.self)
+			
+			if let totalTokens = totalTokens {
+				try container.encode(totalTokens, forKey: .totalTokens)
+				try container.encodeIfPresent(inputTokens, forKey: .inputTokens)
+				try container.encodeIfPresent(outputTokens, forKey: .outputTokens)
+				try container.encodeIfPresent(inputTokenDetails, forKey: .inputTokenDetails)
+				try container.encodeIfPresent(outputTokenDetails, forKey: .outputTokenDetails)
+			} else {
+				try container.encodeIfPresent(type, forKey: .type)
+				try container.encodeIfPresent(seconds, forKey: .seconds)
+			}
+		}
+		
+		private enum CodingKeys: String, CodingKey {
+			case totalTokens, inputTokens, outputTokens, inputTokenDetails, outputTokenDetails
+			case type, seconds
 		}
 	}
 
