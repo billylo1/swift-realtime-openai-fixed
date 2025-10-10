@@ -247,6 +247,8 @@ private extension Conversation {
 				isModelSpeaking = true
 			case .outputAudioBufferStopped:
 				isModelSpeaking = false
+			case .outputAudioBufferCleared:
+				isModelSpeaking = false
 			case let .responseOutputItemDone(_, _, _, item):
 				updateEvent(id: item.id) { message in
 					guard case let .message(newMessage) = item else { return }
