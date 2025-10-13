@@ -68,7 +68,11 @@ public final class WebSocketConnector: NSObject, Connector, Sendable {
 		self.disconnect()
 	}
 
-	public static func create(connectingTo request: URLRequest, session: URLSession = URLSession.shared) async throws -> WebSocketConnector {
+	public static func create(connectingTo request: URLRequest) async throws -> WebSocketConnector {
+		return self.init(connectingTo: request, session: URLSession.shared)
+	}
+	
+	public static func create(connectingTo request: URLRequest, session: URLSession) async throws -> WebSocketConnector {
 		return self.init(connectingTo: request, session: session)
 	}
 
