@@ -18,10 +18,10 @@ public final class WebSocketConnector: NSObject, Connector, Sendable {
 		return encoder
 	}()
 
-	init(connectingTo request: URLRequest) {
+	init(connectingTo request: URLRequest, session: URLSession = URLSession.shared) {
 		let (events, stream) = AsyncThrowingStream.makeStream(of: ServerEvent.self)
 
-		let webSocket = URLSession.shared.webSocketTask(with: request)
+		let webSocket = session.webSocketTask(with: request)
 
 		self.events = events
 		self.stream = stream
@@ -68,8 +68,8 @@ public final class WebSocketConnector: NSObject, Connector, Sendable {
 		self.disconnect()
 	}
 
-	public static func create(connectingTo request: URLRequest) async throws -> WebSocketConnector {
-		return self.init(connectingTo: request)
+	public static func create(connectingTo request: URLRequest, session: URLSession = URLSession.shared) async throws -> WebSocketConnector {
+		return self.init(connectingTo: request, session: session)
 	}
 
 	public func send(event: ClientEvent) async throws {

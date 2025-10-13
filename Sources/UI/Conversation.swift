@@ -87,15 +87,15 @@ public final class Conversation: @unchecked Sendable {
 		errorStream.finish()
 	}
 
-	public func connect(using request: URLRequest) async throws {
+	public func connect(using request: URLRequest, session: URLSession = URLSession.shared) async throws {
 		await AVAudioApplication.requestRecordPermission()
 
-		try await client.connect(using: request)
+		try await client.connect(using: request, session: session)
 	}
 
-	public func connect(ephemeralKey: String, model: Model = .gptRealtime) async throws {
+	public func connect(ephemeralKey: String, model: Model = .gptRealtime, session: URLSession = URLSession.shared) async throws {
 		do {
-			try await connect(using: .webRTCConnectionRequest(ephemeralKey: ephemeralKey, model: model))
+			try await connect(using: .webRTCConnectionRequest(ephemeralKey: ephemeralKey, model: model), session: session)
 		} catch let error as WebRTCConnector.WebRTCError {
 			guard case .invalidEphemeralKey = error else { throw error }
 			throw ConversationError.invalidEphemeralKey

@@ -65,14 +65,14 @@ import FoundationNetworking
 		disconnect()
 	}
 
-	package func connect(using request: URLRequest) async throws {
+	package func connect(using request: URLRequest, session: URLSession = URLSession.shared) async throws {
 		guard connection.connectionState == .new else { return }
 
 		guard AVAudioApplication.shared.recordPermission == .granted else {
 			throw WebRTCError.missingAudioPermission
 		}
 
-		try await performHandshake(using: request)
+		try await performHandshake(using: request, session: session)
 		Self.configureAudioSession()
 	}
 
@@ -146,7 +146,7 @@ private extension WebRTCConnector {
 		#endif
 	}
 
-	func performHandshake(using request: URLRequest) async throws {
+	func performHandshake(using request: URLRequest, session: URLSession = URLSession.shared) async throws {
 		let sdp = try await Result { try await connection.offer(for: LKRTCMediaConstraints(mandatoryConstraints: ["levelControl": "true"], optionalConstraints: nil)) }
 			.mapError(WebRTCError.failedToCreateSDPOffer)
 			.get()
@@ -154,18 +154,18 @@ private extension WebRTCConnector {
 		do { try await connection.setLocalDescription(sdp) }
 		catch { throw WebRTCError.failedToSetLocalDescription(error) }
 
-		let remoteSdp = try await fetchRemoteSDP(using: request, localSdp: connection.localDescription!.sdp)
+		let remoteSdp = try await fetchRemoteSDP(using: request, localSdp: connection.localDescription!.sdp, session: session)
 
 		do { try await connection.setRemoteDescription(LKRTCSessionDescription(type: .answer, sdp: remoteSdp)) }
 		catch { throw WebRTCError.failedToSetRemoteDescription(error) }
 	}
 
-	private func fetchRemoteSDP(using request: URLRequest, localSdp: String) async throws -> String {
+	private func fetchRemoteSDP(using request: URLRequest, localSdp: String, session: URLSession = URLSession.shared) async throws -> String {
 		var request = request
 		request.httpBody = localSdp.data(using: .utf8)
 		request.setValue("application/sdp", forHTTPHeaderField: "Content-Type")
 
-		let (data, response) = try await URLSession.shared.data(for: request)
+		let (data, response) = try await session.data(for: request)
 
 		guard let response = response as? HTTPURLResponse, response.statusCode == 201, let remoteSdp = String(data: data, encoding: .utf8) else {
 			if (response as? HTTPURLResponse)?.statusCode == 401 { throw WebRTCError.invalidEphemeralKey }
