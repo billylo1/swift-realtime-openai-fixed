@@ -1,26 +1,30 @@
 import AVFoundation
 
 extension AVAudioPCMBuffer {
-	static func fromData(_ data: Data, format: AVAudioFormat) -> AVAudioPCMBuffer? {
-		let frameCount = UInt32(data.count) / format.streamDescription.pointee.mBytesPerFrame
 
-		guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else {
-			print("Error: Failed to create AVAudioPCMBuffer")
-			return nil
-		}
+    public enum AudioError: Error {
+        case pcmBufferCreationError(String)
+        case baseAddressError(String)
+    }
 
-		buffer.frameLength = frameCount
-		let audioBuffer = buffer.audioBufferList.pointee.mBuffers
+    static func fromData(_ data: Data, format: AVAudioFormat) throws -> AVAudioPCMBuffer? {
+        let frameCount = UInt32(data.count) / format.streamDescription.pointee.mBytesPerFrame
 
-		data.withUnsafeBytes { bufferPointer in
-			guard let address = bufferPointer.baseAddress else {
-				print("Error: Failed to get base address of data")
-				return
-			}
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else {
+            throw AudioError.pcmBufferCreationError("Failed to create AVAudioPCMBuffer for Realtime")
+        }
 
-			audioBuffer.mData?.copyMemory(from: address, byteCount: Int(audioBuffer.mDataByteSize))
-		}
+        buffer.frameLength = frameCount
+        let audioBuffer = buffer.audioBufferList.pointee.mBuffers
 
-		return buffer
-	}
+        try data.withUnsafeBytes { bufferPointer in
+            guard let address = bufferPointer.baseAddress else {
+                throw AudioError.baseAddressError("Failed to get base address of data for Realtime")
+            }
+
+            audioBuffer.mData?.copyMemory(from: address, byteCount: Int(audioBuffer.mDataByteSize))
+        }
+
+        return buffer
+    }
 }

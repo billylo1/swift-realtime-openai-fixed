@@ -1,157 +1,158 @@
 public struct Response: Identifiable, Equatable, Hashable, Codable, Sendable {
-	public struct Config: Equatable, Hashable, Codable, Sendable {
-		public enum Conversation: String, Equatable, Hashable, Codable, Sendable {
-			/// The contents of the response will be added to the default conversation.
-			case auto
-			/// An out-of-band response which will not add items to default conversation.
-			case none
-		}
 
-		/// The modalities for the response.
-		public let modalities: [Session.Modality]
+    public struct Config: Equatable, Hashable, Codable, Sendable {
+        public enum Conversation: String, Equatable, Hashable, Codable, Sendable {
+            /// The contents of the response will be added to the default conversation.
+            case auto
+            /// An out-of-band response which will not add items to default conversation.
+            case none
+        }
 
-		/// Instructions for the model.
-		public let instructions: String
+        /// The modalities for the response.
+        public let modalities: [Session.Modality]
 
-		/// The voice the model uses to respond.
-		public let voice: Session.Voice
+        /// Instructions for the model.
+        public let instructions: String
 
-		/// The format of output audio.
-		public let outputAudioFormat: Session.AudioFormat
+        /// The voice the model uses to respond.
+        public let voice: Session.Voice
 
-		/// Tools (functions) available to the model.
-		public let tools: [Tool]
+        /// The format of output audio.
+        public let outputAudioFormat: Session.AudioFormat
 
-		/// How the model chooses tools.
-		public let toolChoice: Tool.Choice
+        /// Tools (functions) available to the model.
+        public let tools: [Tool]
 
-		/// Sampling temperature.
-		public let temperature: Double
+        /// How the model chooses tools.
+        public let toolChoice: Tool.Choice
 
-		/// Maximum number of output tokens.
-		public let maxResponseOutputTokens: Int?
+        /// Sampling temperature.
+        public let temperature: Double
 
-		/// Controls which conversation the response is added to.
-		public let conversation: Conversation?
+        /// Maximum number of output tokens.
+        public let maxResponseOutputTokens: Int?
 
-		/// Set of 16 key-value pairs that can be attached to an object. This can be useful for storing additional information about the object in a structured format. Keys can be a maximum of 64 characters long and values can be a maximum of 512 characters long.
-		public let metadata: [String: String]?
+        /// Controls which conversation the response is added to.
+        public let conversation: Conversation?
 
-		/// Input items to include in the prompt for the model. Creates a new context for this response, without including the default conversation. Can include references to items from the default conversation.
-		public let input: [Item]?
+        /// Set of 16 key-value pairs that can be attached to an object. This can be useful for storing additional information about the object in a structured format. Keys can be a maximum of 64 characters long and values can be a maximum of 512 characters long.
+        public let metadata: [String: String]?
 
-		public init(modalities: [Session.Modality], instructions: String, voice: Session.Voice, outputAudioFormat: Session.AudioFormat, tools: [Tool], toolChoice: Tool.Choice, temperature: Double, maxResponseOutputTokens: Int?, conversation: Conversation?, metadata: [String: String]?, input: [Item]?) {
-			self.modalities = modalities
-			self.instructions = instructions
-			self.voice = voice
-			self.outputAudioFormat = outputAudioFormat
-			self.tools = tools
-			self.toolChoice = toolChoice
-			self.temperature = temperature
-			self.maxResponseOutputTokens = maxResponseOutputTokens
-			self.conversation = conversation
-			self.metadata = metadata
-			self.input = input
-		}
-	}
+        /// Input items to include in the prompt for the model. Creates a new context for this response, without including the default conversation. Can include references to items from the default conversation.
+        public let input: [Item]?
 
-	public enum Status: String, Equatable, Hashable, Codable, Sendable {
-		case failed
-		case completed
-		case cancelled
-		case incomplete
-		case inProgress = "in_progress"
-	}
+        public init(modalities: [Session.Modality], instructions: String, voice: Session.Voice, outputAudioFormat: Session.AudioFormat, tools: [Tool], toolChoice: Tool.Choice, temperature: Double, maxResponseOutputTokens: Int?, conversation: Conversation?, metadata: [String: String]?, input: [Item]?) {
+            self.modalities = modalities
+            self.instructions = instructions
+            self.voice = voice
+            self.outputAudioFormat = outputAudioFormat
+            self.tools = tools
+            self.toolChoice = toolChoice
+            self.temperature = temperature
+            self.maxResponseOutputTokens = maxResponseOutputTokens
+            self.conversation = conversation
+            self.metadata = metadata
+            self.input = input
+        }
+    }
 
-	public struct Usage: Equatable, Hashable, Codable, Sendable {
-		public let totalTokens: Int?
-		public let inputTokens: Int?
-		public let outputTokens: Int?
-		public let inputTokenDetails: InputTokenDetails?
-		public let outputTokenDetails: OutputTokenDetails?
-		
-		// For transcription events that use duration-based usage
-		public let type: String?
-		public let seconds: Double?
+    public enum Status: String, Equatable, Hashable, Codable, Sendable {
+        case failed
+        case completed
+        case cancelled
+        case incomplete
+        case inProgress = "in_progress"
+    }
 
-		public struct InputTokenDetails: Equatable, Hashable, Codable, Sendable {
-			public let textTokens: Int
-			public let audioTokens: Int
-			public let cachedTokens: Int
-			public let cachedTokensDetails: CachedTokensDetails
+    public struct Usage: Equatable, Hashable, Codable, Sendable {
+        public let totalTokens: Int?
+        public let inputTokens: Int?
+        public let outputTokens: Int?
+        public let inputTokenDetails: InputTokenDetails?
+        public let outputTokenDetails: OutputTokenDetails?
+        
+        // For transcription events that use duration-based usage
+        public let type: String?
+        public let seconds: Double?
 
-			public struct CachedTokensDetails: Equatable, Hashable, Codable, Sendable {
-				public let textTokens: Int
-				public let audioTokens: Int
-			}
-		}
+        public struct InputTokenDetails: Equatable, Hashable, Codable, Sendable {
+            public let textTokens: Int
+            public let audioTokens: Int
+            public let cachedTokens: Int?
+            public let cachedTokensDetails: CachedTokensDetails?
 
-		public struct OutputTokenDetails: Equatable, Hashable, Codable, Sendable {
-			public let textTokens: Int
-			public let audioTokens: Int
-		}
-		
-		// Custom initializer to handle both token-based and duration-based usage
-		public init(from decoder: Decoder) throws {
-			let container = try decoder.container(keyedBy: CodingKeys.self)
-			
-			// Try to decode as token-based usage first
-			if let totalTokens = try container.decodeIfPresent(Int.self, forKey: .totalTokens) {
-				self.totalTokens = totalTokens
-				self.inputTokens = try container.decodeIfPresent(Int.self, forKey: .inputTokens)
-				self.outputTokens = try container.decodeIfPresent(Int.self, forKey: .outputTokens)
-				self.inputTokenDetails = try container.decodeIfPresent(InputTokenDetails.self, forKey: .inputTokenDetails)
-				self.outputTokenDetails = try container.decodeIfPresent(OutputTokenDetails.self, forKey: .outputTokenDetails)
-				self.type = nil
-				self.seconds = nil
-			} else {
-				// Handle duration-based usage for transcription events
-				self.totalTokens = nil
-				self.inputTokens = nil
-				self.outputTokens = nil
-				self.inputTokenDetails = nil
-				self.outputTokenDetails = nil
-				self.type = try container.decodeIfPresent(String.self, forKey: .type)
-				self.seconds = try container.decodeIfPresent(Double.self, forKey: .seconds)
-			}
-		}
-		
-		public func encode(to encoder: Encoder) throws {
-			var container = encoder.container(keyedBy: CodingKeys.self)
-			
-			if let totalTokens = totalTokens {
-				try container.encode(totalTokens, forKey: .totalTokens)
-				try container.encodeIfPresent(inputTokens, forKey: .inputTokens)
-				try container.encodeIfPresent(outputTokens, forKey: .outputTokens)
-				try container.encodeIfPresent(inputTokenDetails, forKey: .inputTokenDetails)
-				try container.encodeIfPresent(outputTokenDetails, forKey: .outputTokenDetails)
-			} else {
-				try container.encodeIfPresent(type, forKey: .type)
-				try container.encodeIfPresent(seconds, forKey: .seconds)
-			}
-		}
-		
-		private enum CodingKeys: String, CodingKey {
-			case totalTokens, inputTokens, outputTokens, inputTokenDetails, outputTokenDetails
-			case type, seconds
-		}
-	}
+            public struct CachedTokensDetails: Equatable, Hashable, Codable, Sendable {
+                public let textTokens: Int
+                public let audioTokens: Int
+            }
+        }
 
-	/// The unique ID of the response.
-	public let id: String
+        public struct OutputTokenDetails: Equatable, Hashable, Codable, Sendable {
+            public let textTokens: Int
+            public let audioTokens: Int
+        }
+        
+        // Custom initializer to handle both token-based and duration-based usage
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            
+            // Try to decode as token-based usage first
+            if let totalTokens = try container.decodeIfPresent(Int.self, forKey: .totalTokens) {
+                self.totalTokens = totalTokens
+                self.inputTokens = try container.decodeIfPresent(Int.self, forKey: .inputTokens)
+                self.outputTokens = try container.decodeIfPresent(Int.self, forKey: .outputTokens)
+                self.inputTokenDetails = try container.decodeIfPresent(InputTokenDetails.self, forKey: .inputTokenDetails)
+                self.outputTokenDetails = try container.decodeIfPresent(OutputTokenDetails.self, forKey: .outputTokenDetails)
+                self.type = nil
+                self.seconds = nil
+            } else {
+                // Handle duration-based usage for transcription events
+                self.totalTokens = nil
+                self.inputTokens = nil
+                self.outputTokens = nil
+                self.inputTokenDetails = nil
+                self.outputTokenDetails = nil
+                self.type = try container.decodeIfPresent(String.self, forKey: .type)
+                self.seconds = try container.decodeIfPresent(Double.self, forKey: .seconds)
+            }
+        }
+        
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            
+            if let totalTokens = totalTokens {
+                try container.encode(totalTokens, forKey: .totalTokens)
+                try container.encodeIfPresent(inputTokens, forKey: .inputTokens)
+                try container.encodeIfPresent(outputTokens, forKey: .outputTokens)
+                try container.encodeIfPresent(inputTokenDetails, forKey: .inputTokenDetails)
+                try container.encodeIfPresent(outputTokenDetails, forKey: .outputTokenDetails)
+            } else {
+                try container.encodeIfPresent(type, forKey: .type)
+                try container.encodeIfPresent(seconds, forKey: .seconds)
+            }
+        }
+        
+        private enum CodingKeys: String, CodingKey {
+            case totalTokens, inputTokens, outputTokens, inputTokenDetails, outputTokenDetails
+            case type, seconds
+        }
+    }
 
-	/// The status of the response.
-	public let status: Status
+    /// The unique ID of the response.
+    public let id: String
 
-	/// The list of output items generated by the response.
-	public let output: [Item]
+    /// The status of the response.
+    public let status: Status
 
-	/// Which conversation the response is added to.
-	public var conversationId: String?
+    /// The list of output items generated by the response.
+    public let output: [Item]
 
-	/// Usage statistics for the response.
-	public let usage: Usage?
+    /// Which conversation the response is added to.
+    public var conversationId: String?
 
-	/// Developer-provided string key-value pairs associated with this response.
-	public let metadata: [String: String]?
+    /// Usage statistics for the response.
+    public let usage: Usage?
+
+    /// Developer-provided string key-value pairs associated with this response.
+    public let metadata: [String: String]?
 }

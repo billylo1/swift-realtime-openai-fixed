@@ -5,26 +5,27 @@ import Foundation
 /// >
 /// > If you really need to, manually observe the property using `withObservationTracking` and write changes in the main actor.
 @Observable final class UnsafeMutableArray<T: Sendable>: @unchecked Sendable {
-	private var array = [T]()
 
-	public var isEmpty: Bool {
-		array.isEmpty
-	}
+    private var array = [T]()
 
-	var first: T? {
-		array.first
-	}
+    public var isEmpty: Bool {
+        array.isEmpty
+    }
 
-	func push(_ value: T) {
-		array.append(value)
-	}
+    var first: T? {
+        array.first
+    }
 
-	@discardableResult
-	func popFirst() -> T? {
-		array.removeFirst()
-	}
+    func push(_ value: T) {
+        array.append(value)
+    }
 
-	func clear() {
-		array.removeAll()
-	}
+    @discardableResult
+    func popFirst() -> T? {
+        array.removeFirst()
+    }
+
+    func clear() {
+        array.removeAll()
+    }
 }

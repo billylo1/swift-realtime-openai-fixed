@@ -1,24 +1,25 @@
 final class UnsafeInteriorMutable<T: Sendable>: @unchecked Sendable {
-	private var value: T?
 
-	func set(_ value: T) {
-		self.value = value
-	}
+    private var value: T?
 
-	func get() -> T? {
-		return value
-	}
+    func set(_ value: T) {
+        self.value = value
+    }
 
-	func lazy(_ closure: () -> T?) -> T? {
-		if case let .some(wrapped) = value {
-			return wrapped
-		}
+    func get() -> T? {
+        return value
+    }
 
-		if let newValue = closure() {
-			value = newValue
-			return newValue
-		}
+    func lazy(_ closure: () -> T?) -> T? {
+        if case let .some(wrapped) = value {
+            return wrapped
+        }
 
-		return nil
-	}
+        if let newValue = closure() {
+            value = newValue
+            return newValue
+        }
+
+        return nil
+    }
 }

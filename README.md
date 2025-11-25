@@ -174,7 +174,6 @@ To interact with the API directly, create a new instance of `RealtimeAPI` provid
 
 ```swift
 let api = RealtimeAPI.webRTC(ephemeralKey: YOUR_EPHEMERAL_KEY, model: .gptRealtime) // or RealtimeAPI.webRTC(connectingTo: URLRequest)
-let api = RealtimeAPI.webSocket(authToken: YOUR_OPENAI_API_KEY, model: .gptRealtime) // or RealtimeAPI.webSocket(connectingTo: URLRequest)
 ```
 
 You can listen for new events through the `events` property, like so:
